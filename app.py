@@ -27,7 +27,6 @@ st.markdown(
 )
 
 # --- 4. MAPA SATELITAL (GEOINT) ---
-# Intentamos autenticar usando el Token guardado en los Secrets de Streamlit
 try:
     geemap.ee_initialize()
 except Exception as e:
@@ -61,7 +60,6 @@ def generar_mapa():
     return m
 
 st.subheader("1. Evidencia Física (El Terreno)")
-# Generamos y mostramos el mapa
 mapa = generar_mapa()
 mapa.to_streamlit(height=500)
 
@@ -70,18 +68,21 @@ st.markdown("---")
 st.subheader("2. Evidencia Documental (El Dinero)")
 
 try:
-    # --- LA SOLUCIÓN DEFINITIVA ---
-    # Leemos el archivo directamente desde la URL de GitHub (Raw)
-    # Esto evita el error de "File not found" en el servidor.
+    # URL directa a tu archivo en GitHub
     url_datos = "https://raw.githubusercontent.com/Ptrktps13/civic-dashboard/main/financial_data.csv"
     
     df = pd.read_csv(url_datos)
     
-    # Crear Gráfica Interactiva con Plotly
+    # --- CORRECCIÓN DEL ERROR ---
+    # Creamos una columna nueva con el valor absoluto (positivo) para el TAMAÑO de la burbuja.
+    # Así el -213 se convierte en 213 solo para calcular qué tan grande se dibuja.
+    df["monto_size"] = df["monto_millones"].abs()
+    
+    # Crear Gráfica
     fig = px.scatter(df, x="fecha", y="monto_millones", 
                      color="tipo", 
-                     size="monto_millones", # El tamaño de la burbuja es el monto
-                     hover_data=["evento", "fuente"],
+                     size="monto_size",  # <--- Usamos la columna positiva aquí
+                     hover_data=["evento", "fuente", "monto_millones"],
                      size_max=40,
                      title="Cronología Financiera: Promesas vs Pérdidas (Millones USD)",
                      color_discrete_map={
@@ -92,13 +93,14 @@ try:
                          "Hito": "grey"
                      })
     
-    # Mejoras visuales de la gráfica
     fig.update_traces(mode='markers+lines')
+    # Ajustamos el eje Y para que se vea bien el cero
+    fig.add_hline(y=0, line_dash="dash", line_color="gray")
     fig.update_layout(xaxis_title="Fecha del Evento", yaxis_title="Monto (Millones USD)")
 
     st.plotly_chart(fig, use_container_width=True)
     
-    st.caption("ℹ️ Datos extraídos de fuentes oficiales (Presidencia, Gas Sayago, Auditorías). Pasa el mouse para ver detalles.")
+    st.caption("ℹ️ Datos extraídos de fuentes oficiales. Los valores negativos indican pérdidas confirmadas para el Estado.")
 
 except Exception as e:
     st.error(f"⚠️ Error cargando los datos financieros: {e}")
