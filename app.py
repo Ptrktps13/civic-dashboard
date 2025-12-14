@@ -62,7 +62,9 @@ st.subheader("2. Evidencia Documental (El Dinero)")
 
 # Cargar datos
 try:
-    df = pd.read_csv("financial_data.csv")
+   # Usamos la URL directa para evitar errores de sincronización
+    url_datos = "https://raw.githubusercontent.com/Ptrktps13/civic-dashboard/main/financial_data.csv"
+    df = pd.read_csv(url_datos)
     
     # Crear Gráfica Interactiva
     fig = px.scatter(df, x="fecha", y="monto_millones", 
