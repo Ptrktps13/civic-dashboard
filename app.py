@@ -4,7 +4,7 @@ import ee
 import pandas as pd
 import plotly.express as px
 
-# --- 1. DICCIONARIO DE IDIOMAS (EL CEREBRO MULTILINGÜE) ---
+# --- 1. DICCIONARIO DE IDIOMAS ---
 TRANSLATIONS = {
     "ES": {
         "page_title": "Dashboard de Integridad Cívica",
@@ -84,7 +84,7 @@ TRANSLATIONS = {
     }
 }
 
-# --- CONFIGURACIÓN INICIAL ---
+# --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="Civic Integrity Dashboard", page_icon="🛰️", layout="wide")
 
 # --- SELECTOR DE IDIOMA ---
@@ -114,7 +114,7 @@ except Exception:
 def generar_mapa():
     m = geemap.Map(center=[-34.9080, -56.2650], zoom=14)
     
-    # 2013
+    # 2013 (Izquierda)
     img_2013 = ee.ImageCollection('LANDSAT/LC08/C02/T1_TOA') \
         .filterBounds(ee.Geometry.Point([-56.2650, -34.9080])) \
         .filterDate('2013-05-01', '2013-12-31') \
@@ -123,7 +123,7 @@ def generar_mapa():
     vis_2013 = {'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 0.25, 'gamma': 1.3}
     left_layer = geemap.ee_tile_layer(img_2013, vis_2013, text["layer_2013"])
 
-    # 2024
+    # 2024 (Derecha)
     img_2024 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED') \
         .filterBounds(ee.Geometry.Point([-56.2650, -34.9080])) \
         .filterDate('2023-01-01', '2024-01-01') \
@@ -144,8 +144,33 @@ st.markdown("---")
 st.subheader(text["finance_header"])
 
 try:
+    # URL directa a tu archivo CSV en GitHub
     url_datos = "https://raw.githubusercontent.com/Ptrktps13/civic-dashboard/main/financial_data.csv"
     df = pd.read_csv(url_datos)
     
-    # Cálculo para el tamaño de burbuja (valor absoluto)
-    df["monto_
+    # Cálculo para tamaño de burbuja (valor absoluto)
+    df["monto_size"] = df["monto_millones"].abs()
+    
+    fig = px.scatter(df, x="fecha", y="monto_millones", 
+                     color="tipo", 
+                     size="monto_size", 
+                     hover_data=["evento", "fuente", "monto_millones"],
+                     size_max=40,
+                     title=text["chart_title"],
+                     color_discrete_map={
+                         "Promesa": "blue", 
+                         "Gasto Real": "orange", 
+                         "Pérdida Neta": "red",
+                         "Recupero": "green",
+                         "Hito": "grey"
+                     })
+    
+    fig.update_traces(mode='markers+lines')
+    fig.add_hline(y=0, line_dash="dash", line_color="gray")
+    fig.update_layout(xaxis_title=text["chart_x"], yaxis_title=text["chart_y"])
+
+    st.plotly_chart(fig, use_container_width=True)
+    st.caption(text["footer_caption"])
+
+except Exception as e:
+    st.error(text["error_data"] + str(e))
