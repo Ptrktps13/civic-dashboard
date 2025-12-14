@@ -1,76 +1,91 @@
 import streamlit as st
 import geemap.foliumap as geemap
 import ee
+import pandas as pd
+import plotly.express as px
 
-# 1. Configuración de la Página (Título e Icono)
+# --- 1. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="Civic Integrity Dashboard", page_icon="🛰️", layout="wide")
 
-# 2. Barra Lateral (Contexto del Proyecto)
+# --- 2. BARRA LATERAL (CONTEXTO) ---
 st.sidebar.title("🔍 Auditoría Satelital")
+st.sidebar.markdown("### Caso: Gas Sayago (Uruguay)")
 st.sidebar.info(
     """
-    **Proyecto:** Gas Sayago (Uruguay)
-    **Inversión:** $150M USD (Estimado)
-    **Estado:** Abandonado
+    Este dashboard cruza **Inteligencia Geoespacial (GEOINT)** con datos financieros públicos (**OSINT**).
     """
 )
 st.sidebar.markdown("---")
-st.sidebar.write("Este dashboard utiliza **Inteligencia Geoespacial (GEOINT)** para verificar la evolución de obras públicas.")
+st.sidebar.write("Fuentes: NASA Landsat, Sentinel-2, Auditoría PwC, Presidencia.")
 
-# 3. Título Principal
-st.title("🛰️ The Civic Integrity Dashboard")
+# --- 3. TÍTULO ---
+st.title("🛰️ Civic Integrity Dashboard: Fase 2")
 st.markdown(
     """
-    Comparación en tiempo real entre el **inicio del proyecto (2013)** y la **realidad actual (2024)**.
-    Desliza la barra central para revelar la verdad.
+    Comparación en tiempo real entre la **Promesa Financiera** y la **Realidad Física**.
     """
 )
 
-# 4. Inicialización de Mapas (Autenticación con Secretos)
-# NOTA: Esto requiere configurar las llaves en la nube de Streamlit después.
+# --- 4. MAPA SATELITAL (GEOINT) ---
 try:
-    # Intenta usar las credenciales de la nube si existen
     geemap.ee_initialize()
 except Exception as e:
-    # Si falla, usa el método estándar (solo funcionará en local si estás logueado)
+    # Intento de reconexión con credenciales si falla la primera
     try:
         ee.Initialize(project='gas-plant-audit-uruguay')
     except:
-        st.error("Error de conexión con Google Earth Engine. Faltan credenciales.")
+        st.error("⚠️ Error de conexión con Google Earth Engine. Verifica tus 'Secrets' en Streamlit.")
 
-# 5. Lógica del Mapa (Igual que en Colab pero adaptado)
 def generar_mapa():
-    # Coordenadas Gas Sayago
-    m = geemap.Map(center=[-34.9080, -56.2650], zoom=15)
+    m = geemap.Map(center=[-34.9080, -56.2650], zoom=14)
     
-    # Imagen Izquierda (2013 - Inicio)
-    img_2013 = ee.ImageCollection('LANDSAT/LC08/C02/T1_TOA') \
-        .filterBounds(ee.Geometry.Point([-56.2650, -34.9080])) \
-        .filterDate('2013-05-01', '2013-12-31') \
-        .sort('CLOUD_COVER') \
-        .first()
-    
+    # 2013 (Izquierda)
+    img_2013 = ee.ImageCollection('LANDSAT/LC08/C02/T1_TOA').filterBounds(ee.Geometry.Point([-56.2650, -34.9080])).filterDate('2013-05-01', '2013-12-31').sort('CLOUD_COVER').first()
     vis_2013 = {'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 0.25, 'gamma': 1.3}
-    layer_left = geemap.ee_tile_layer(img_2013, vis_2013, '2013 (Promesa)')
+    left_layer = geemap.ee_tile_layer(img_2013, vis_2013, '2013 (Inicio)')
 
-    # Imagen Derecha (2024 - Realidad - Google Satélite)
-    # Usamos Sentinel para asegurar compatibilidad web si Google Maps falla en iframe
-    img_2024 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED') \
-        .filterBounds(ee.Geometry.Point([-56.2650, -34.9080])) \
-        .filterDate('2023-01-01', '2024-01-01') \
-        .sort('CLOUDY_PIXEL_PERCENTAGE') \
-        .first()
-        
+    # 2024 (Derecha)
+    img_2024 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED').filterBounds(ee.Geometry.Point([-56.2650, -34.9080])).filterDate('2023-01-01', '2024-01-01').sort('CLOUDY_PIXEL_PERCENTAGE').first()
     vis_2024 = {'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 3000, 'gamma': 1.1}
-    layer_right = geemap.ee_tile_layer(img_2024, vis_2024, '2024 (Realidad)')
+    right_layer = geemap.ee_tile_layer(img_2024, vis_2024, '2024 (Realidad)')
 
-    # Crear Split Map
-    m.split_map(left_layer=layer_left, right_layer=layer_right)
-    
+    m.split_map(left_layer, right_layer)
     return m
 
-# 6. Mostrar el Mapa en la Web
-mapa_final = generar_mapa()
-mapa_final.to_streamlit(height=600)
+st.subheader("1. Evidencia Física (El Terreno)")
+mapa = generar_mapa()
+mapa.to_streamlit(height=500)
 
-st.success("✅ Datos verificados vía satélite. Fuente: NASA/ESA.")
+# --- 5. LÍNEA DE TIEMPO FINANCIERA (OSINT) ---
+st.markdown("---")
+st.subheader("2. Evidencia Documental (El Dinero)")
+
+# Cargar datos
+try:
+    df = pd.read_csv("financial_data.csv")
+    
+    # Crear Gráfica Interactiva
+    fig = px.scatter(df, x="fecha", y="monto_millones", 
+                     color="tipo", 
+                     size="monto_millones", 
+                     hover_data=["evento", "fuente"],
+                     size_max=40,
+                     title="Cronología Financiera: Promesas vs Pérdidas (Millones USD)",
+                     color_discrete_map={
+                         "Promesa": "blue", 
+                         "Gasto Real": "orange", 
+                         "Pérdida Neta": "red",
+                         "Recupero": "green",
+                         "Hito": "grey"
+                     })
+    
+    # Añadir líneas verticales para conectar los puntos con el eje X
+    fig.update_traces(mode='markers+lines')
+    fig.update_layout(xaxis_title="Año", yaxis_title="Monto (Millones USD)")
+
+    st.plotly_chart(fig, use_container_width=True)
+    
+    st.caption("ℹ️ Pasa el mouse sobre los puntos para ver la fuente de la información.")
+
+except Exception as e:
+    st.warning("⚠️ No se encontró el archivo de datos financieros. Asegúrate de subir 'financial_data.csv' al repositorio.")
