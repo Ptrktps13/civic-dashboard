@@ -27,25 +27,33 @@ st.markdown(
 )
 
 # --- 4. MAPA SATELITAL (GEOINT) ---
+# Intentamos autenticar usando el Token guardado en los Secrets de Streamlit
 try:
     geemap.ee_initialize()
 except Exception as e:
-    # Intento de reconexión con credenciales si falla la primera
-    try:
-        ee.Initialize(project='gas-plant-audit-uruguay')
-    except:
-        st.error("⚠️ Error de conexión con Google Earth Engine. Verifica tus 'Secrets' en Streamlit.")
+    st.error("⚠️ Error de conexión con Google Earth Engine. Verifica que el 'EARTHENGINE_TOKEN' esté en los Secrets.")
 
 def generar_mapa():
+    # Centrado en Gas Sayago
     m = geemap.Map(center=[-34.9080, -56.2650], zoom=14)
     
-    # 2013 (Izquierda)
-    img_2013 = ee.ImageCollection('LANDSAT/LC08/C02/T1_TOA').filterBounds(ee.Geometry.Point([-56.2650, -34.9080])).filterDate('2013-05-01', '2013-12-31').sort('CLOUD_COVER').first()
+    # IZQUIERDA: 2013 (Inicio - Landsat 8)
+    img_2013 = ee.ImageCollection('LANDSAT/LC08/C02/T1_TOA') \
+        .filterBounds(ee.Geometry.Point([-56.2650, -34.9080])) \
+        .filterDate('2013-05-01', '2013-12-31') \
+        .sort('CLOUD_COVER') \
+        .first()
+    
     vis_2013 = {'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 0.25, 'gamma': 1.3}
     left_layer = geemap.ee_tile_layer(img_2013, vis_2013, '2013 (Inicio)')
 
-    # 2024 (Derecha)
-    img_2024 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED').filterBounds(ee.Geometry.Point([-56.2650, -34.9080])).filterDate('2023-01-01', '2024-01-01').sort('CLOUDY_PIXEL_PERCENTAGE').first()
+    # DERECHA: 2024 (Realidad - Sentinel 2)
+    img_2024 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED') \
+        .filterBounds(ee.Geometry.Point([-56.2650, -34.9080])) \
+        .filterDate('2023-01-01', '2024-01-01') \
+        .sort('CLOUDY_PIXEL_PERCENTAGE') \
+        .first()
+        
     vis_2024 = {'bands': ['B4', 'B3', 'B2'], 'min': 0, 'max': 3000, 'gamma': 1.1}
     right_layer = geemap.ee_tile_layer(img_2024, vis_2024, '2024 (Realidad)')
 
@@ -53,6 +61,7 @@ def generar_mapa():
     return m
 
 st.subheader("1. Evidencia Física (El Terreno)")
+# Generamos y mostramos el mapa
 mapa = generar_mapa()
 mapa.to_streamlit(height=500)
 
@@ -60,16 +69,18 @@ mapa.to_streamlit(height=500)
 st.markdown("---")
 st.subheader("2. Evidencia Documental (El Dinero)")
 
-# Cargar datos
 try:
-   # Usamos la URL directa para evitar errores de sincronización
+    # --- LA SOLUCIÓN DEFINITIVA ---
+    # Leemos el archivo directamente desde la URL de GitHub (Raw)
+    # Esto evita el error de "File not found" en el servidor.
     url_datos = "https://raw.githubusercontent.com/Ptrktps13/civic-dashboard/main/financial_data.csv"
+    
     df = pd.read_csv(url_datos)
     
-    # Crear Gráfica Interactiva
+    # Crear Gráfica Interactiva con Plotly
     fig = px.scatter(df, x="fecha", y="monto_millones", 
                      color="tipo", 
-                     size="monto_millones", 
+                     size="monto_millones", # El tamaño de la burbuja es el monto
                      hover_data=["evento", "fuente"],
                      size_max=40,
                      title="Cronología Financiera: Promesas vs Pérdidas (Millones USD)",
@@ -81,13 +92,13 @@ try:
                          "Hito": "grey"
                      })
     
-    # Añadir líneas verticales para conectar los puntos con el eje X
+    # Mejoras visuales de la gráfica
     fig.update_traces(mode='markers+lines')
-    fig.update_layout(xaxis_title="Año", yaxis_title="Monto (Millones USD)")
+    fig.update_layout(xaxis_title="Fecha del Evento", yaxis_title="Monto (Millones USD)")
 
     st.plotly_chart(fig, use_container_width=True)
     
-    st.caption("ℹ️ Pasa el mouse sobre los puntos para ver la fuente de la información.")
+    st.caption("ℹ️ Datos extraídos de fuentes oficiales (Presidencia, Gas Sayago, Auditorías). Pasa el mouse para ver detalles.")
 
 except Exception as e:
-    st.warning("⚠️ No se encontró el archivo de datos financieros. Asegúrate de subir 'financial_data.csv' al repositorio.")
+    st.error(f"⚠️ Error cargando los datos financieros: {e}")
