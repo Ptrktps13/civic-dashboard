@@ -89,11 +89,10 @@ st.set_page_config(page_title="Civic Integrity Dashboard", page_icon="🛰️", 
 
 # --- SELECTOR DE IDIOMA ---
 st.sidebar.markdown("## 🌐 Language / Idioma")
-# Mapeamos nombres bonitos a códigos internos
 lang_options = {"Español": "ES", "English": "EN", "Français": "FR", "Português": "PT"}
 selected_lang_name = st.sidebar.selectbox("Seleccionar / Select:", list(lang_options.keys()))
-lang_code = lang_options[selected_lang_name] # Obtenemos el código (ES, EN, etc.)
-text = TRANSLATIONS[lang_code] # Cargamos el diccionario del idioma elegido
+lang_code = lang_options[selected_lang_name]
+text = TRANSLATIONS[lang_code]
 
 # --- BARRA LATERAL ---
 st.sidebar.title(text["sidebar_title"])
@@ -149,28 +148,4 @@ try:
     df = pd.read_csv(url_datos)
     
     # Cálculo para el tamaño de burbuja (valor absoluto)
-    df["monto_size"] = df["monto_millones"].abs()
-    
-    fig = px.scatter(df, x="fecha", y="monto_millones", 
-                     color="tipo", 
-                     size="monto_size", 
-                     hover_data=["evento", "fuente", "monto_millones"],
-                     size_max=40,
-                     title=text["chart_title"],
-                     color_discrete_map={
-                         "Promesa": "blue", 
-                         "Gasto Real": "orange", 
-                         "Pérdida Neta": "red",
-                         "Recupero": "green",
-                         "Hito": "grey"
-                     })
-    
-    fig.update_traces(mode='markers+lines')
-    fig.add_hline(y=0, line_dash="dash", line_color="gray")
-    fig.update_layout(xaxis_title=text["chart_x"], yaxis_title=text["chart_y"])
-
-    st.plotly_chart(fig, use_container_width=True)
-    st.caption(text["footer_caption"])
-
-except Exception as e:
-    st.error(text["error_data
+    df["monto_
