@@ -4,6 +4,7 @@ import ee
 import pandas as pd
 import plotly.express as px
 import folium
+import os  # <--- NUEVA LIBRERÍA NECESARIA PARA LA CONEXIÓN
 
 # --- 1. DICCIONARIO DE IDIOMAS ---
 TRANSLATIONS = {
@@ -114,11 +115,27 @@ st.sidebar.write(text["sources"])
 st.title(text["main_title"])
 st.markdown(text["main_desc"])
 
-# --- MAPA (GEOINT) ---
-try:
-    geemap.ee_initialize()
-except Exception:
-    st.error(text["error_ee"])
+# --- CONEXIÓN BLINDADA CON EARTH ENGINE ---
+def iniciar_earth_engine():
+    """Intenta conectar con GEE usando el Token de los Secrets."""
+    try:
+        # 1. Recuperar el token de los secretos de Streamlit
+        if "EARTHENGINE_TOKEN" in st.secrets:
+            # Pasamos el token a las variables de entorno para que geemap lo encuentre
+            os.environ["EARTHENGINE_TOKEN"] = st.secrets["EARTHENGINE_TOKEN"]
+        
+        # 2. Inicializar usando el proyecto por defecto o específico
+        # Si esto falla, verifica que 'gas-plant-audit-uruguay' sea el nombre correcto de tu proyecto en Google Cloud
+        geemap.ee_initialize(project='gas-plant-audit-uruguay')
+        return True
+        
+    except Exception as e:
+        st.error(f"⚠️ Error Crítico de Conexión: {e}")
+        st.stop() # Detenemos la ejecución aquí para evitar el error 'Not Initialized' más abajo
+        return False
+
+# Ejecutamos la conexión antes de hacer nada más
+iniciar_earth_engine()
 
 # --- FUNCIÓN PARA TEXTO FLOTANTE ---
 def add_text_to_map(m, text_left, text_right):
