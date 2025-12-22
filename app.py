@@ -6,7 +6,7 @@ import plotly.express as px
 import folium
 import os
 
-# --- 1. DICCIONARIO DE IDIOMAS (CON EL NUEVO DOSSIER) ---
+# --- 1. DICCIONARIO DE IDIOMAS (AHORA CON LINKS Y FUENTES) ---
 TRANSLATIONS = {
     "ES": {
         "page_title": "Dashboard de Integridad Cívica",
@@ -28,15 +28,21 @@ TRANSLATIONS = {
         "error_data": "⚠️ Error cargando datos financieros: ",
         "label_left": "2013: INICIO (SOLO AGUA)",
         "label_right": "2024: REALIDAD (ABANDONO)",
-        # --- NUEVO: SECCIÓN DOSSIER ---
+        
+        # --- DOSSIER ENRIQUECIDO ---
         "dossier_header": "3. Dossier de Investigación (Informe Ejecutivo)",
-        "dossier_title": "📄 Resumen del Caso: Proyecto Regasificadora Gas Sayago",
+        "dossier_title": "📄 Ver Informe del Caso y Fuentes Originales",
         "dossier_text": """
-        **El Proyecto:** En 2013, el Estado uruguayo anunció la construcción de una planta regasificadora offshore con una inversión estimada de **$1.125 millones de dólares**, prometiendo cambiar la matriz energética del país.
+        ### 📌 Resumen de los Hechos
         
-        **La Falla:** La empresa constructora (GNLS) detuvo las obras en 2015 alegando problemas técnicos. El contrato fue rescindido, dejando en el agua una estructura de pilotes inconclusa que se puede observar en la imagen satelital de 2024.
+        **1. La Promesa (2013):** El Estado anunció la construcción de la regasificadora con una inversión prometida de **$1.125 millones**.  
+        🔗 *Fuente:* [Comunicado Oficial de Presidencia (2013)](https://www.gub.uy/presidencia/comunicacion/noticias/gas-sayago-gdf-suez-firman-contrato-para-construccion-operacion)
         
-        **El Costo:** Según la auditoría forense realizada por PwC (2021), el Estado uruguayo sufrió una **pérdida neta de $213 millones de dólares**. Esto incluye gastos operativos, legales y de infraestructura inútil que se mantuvieron años después de la cancelación del proyecto.
+        **2. El Abandono (2015):** La constructora GNLS detuvo las obras. El contrato se rescindió, dejando inconclusa la escollera que se observa en el mapa.  
+        🔗 *Prensa:* [Informe de Montevideo Portal sobre la rescisión](https://www.montevideo.com.uy/Noticias/Gobierno-rescindio-contrato-con-GNLS-por-regasificadora-uc285896)
+        
+        **3. El Costo Final (2021):** La auditoría forense confirmó una **pérdida neta de $213 millones** para los contribuyentes.  
+        🔗 *Evidencia Clave:* [Descargar Auditoría Oficial (PwC)](https://www.gub.uy/presidencia/comunicacion/noticias/auditoria-encargada-ute-concluye-proyecto-gas-sayago-era-inviable-desde-su)
         """
     },
     "EN": {
@@ -59,15 +65,21 @@ TRANSLATIONS = {
         "error_data": "⚠️ Error loading financial data: ",
         "label_left": "2013: START (WATER ONLY)",
         "label_right": "2024: REALITY (ABANDONED)",
-        # --- NEW: DOSSIER SECTION ---
+        
+        # --- ENRICHED DOSSIER ---
         "dossier_header": "3. Investigative Dossier (Executive Report)",
-        "dossier_title": "📄 Case Summary: Gas Sayago Regasification Project",
+        "dossier_title": "📄 View Case Report & Original Sources",
         "dossier_text": """
-        **The Project:** In 2013, the Uruguayan government announced the construction of an offshore regasification plant with an estimated investment of **$1.125 billion USD**, promising to transform the country's energy matrix.
+        ### 📌 Fact Sheet
         
-        **The Failure:** The construction firm (GNLS) halted works in 2015 citing technical issues. The contract was rescinded, leaving an unfinished structure of piles in the ocean, clearly visible in the 2024 satellite imagery.
+        **1. The Promise (2013):** The government announced the plant with a promised investment of **$1.125 billion**.  
+        🔗 *Source:* [Official Presidency Statement (2013)](https://www.gub.uy/presidencia/comunicacion/noticias/gas-sayago-gdf-suez-firman-contrato-para-construccion-operacion)
         
-        **The Cost:** According to a forensic audit by PwC (2021), the Uruguayan State suffered a **net loss of $213 million USD**. This includes operational, legal, and useless infrastructure costs incurred years after the project's cancellation.
+        **2. The Abandonment (2015):** Construction was halted by GNLS. The contract was rescinded, leaving the unfinished breakwater visible on the map.  
+        🔗 *Press:* [News Report on Contract Termination](https://www.montevideo.com.uy/Noticias/Gobierno-rescindio-contrato-con-GNLS-por-regasificadora-uc285896)
+        
+        **3. The Final Cost (2021):** Forensic audit confirmed a **net loss of $213 million** for taxpayers.  
+        🔗 *Key Evidence:* [Download Official Audit (PwC)](https://www.gub.uy/presidencia/comunicacion/noticias/auditoria-encargada-ute-concluye-proyecto-gas-sayago-era-inviable-desde-su)
         """
     },
     "FR": {
@@ -90,15 +102,19 @@ TRANSLATIONS = {
         "error_data": "⚠️ Erreur de chargement des données financières: ",
         "label_left": "2013: DÉBUT", 
         "label_right": "2024: RÉALITÉ",
-        # --- NOUVEAU: DOSSIER ---
         "dossier_header": "3. Dossier d'Enquête (Rapport Exécutif)",
-        "dossier_title": "📄 Résumé du cas : Projet de Regazéification Gas Sayago",
+        "dossier_title": "📄 Voir le Rapport et les Sources Originales",
         "dossier_text": """
-        **Le Projet :** En 2013, l'État uruguayen a annoncé la construction d'une usine de regazéification offshore avec un investissement estimé à **1,125 milliard de dollars**, promettant de changer la matrice énergétique du pays.
+        ### 📌 Résumé des Faits
         
-        **L'Échec :** L'entreprise de construction (GNLS) a arrêté les travaux en 2015 en invoquant des problèmes techniques. Le contrat a été résilié, laissant dans l'eau une structure inachevée visible sur l'image satellite de 2024.
+        **1. La Promesse (2013):** L'État a annoncé l'investissement de **1,125 milliard de dollars**.  
+        🔗 *Source:* [Communiqué Officiel (2013)](https://www.gub.uy/presidencia/comunicacion/noticias/gas-sayago-gdf-suez-firman-contrato-para-construccion-operacion)
         
-        **Le Coût :** Selon l'audit de PwC (2021), l'État a subi une **perte nette de 213 millions de dollars**. Cela inclut des frais opérationnels et d'infrastructures inutiles maintenus des années après l'annulation.
+        **2. L'Abandon (2015):** Arrêt des travaux. Le contrat a été résilié.  
+        🔗 *Presse:* [Rapport sur la résiliation](https://www.montevideo.com.uy/Noticias/Gobierno-rescindio-contrato-con-GNLS-por-regasificadora-uc285896)
+        
+        **3. Le Coût Final (2021):** L'audit a confirmé une **perte nette de 213 millions de dollars**.  
+        🔗 *Preuve Clé:* [Télécharger l'Audit Officiel (PwC)](https://www.gub.uy/presidencia/comunicacion/noticias/auditoria-encargada-ute-concluye-proyecto-gas-sayago-era-inviable-desde-su)
         """
     },
     "PT": {
@@ -121,15 +137,19 @@ TRANSLATIONS = {
         "error_data": "⚠️ Erro ao carregar dados financeiros: ",
         "label_left": "2013: INÍCIO", 
         "label_right": "2024: REALIDADE",
-        # --- NOVO: DOSSIER ---
         "dossier_header": "3. Dossiê de Investigação (Relatório Executivo)",
-        "dossier_title": "📄 Resumo do Caso: Projeto Gás Sayago",
+        "dossier_title": "📄 Ver Relatório do Caso e Fontes Originais",
         "dossier_text": """
-        **O Projeto:** Em 2013, o governo uruguaio anunciou a construção de uma planta de regaseificação offshore com um investimento estimado de **$1.125 milhões de dólares**, prometendo mudar a matriz energética do país.
+        ### 📌 Resumo dos Fatos
         
-        **A Falha:** A construtora (GNLS) parou as obras em 2015 alegando problemas técnicos. O contrato foi rescindido, deixando no mar uma estrutura de estacas inacabada visível na imagem de satélite de 2024.
+        **1. A Promessa (2013):** O governo anunciou o investimento de **$1.125 milhões**.  
+        🔗 *Fonte:* [Comunicado Oficial (2013)](https://www.gub.uy/presidencia/comunicacion/noticias/gas-sayago-gdf-suez-firman-contrato-para-construccion-operacion)
         
-        **O Custo:** Segundo auditoria da PwC (2021), o Estado sofreu uma **perda líquida de $213 milhões de dólares**. Isso inclui gastos operacionais e de infraestrutura inútil mantidos anos após o cancelamento.
+        **2. O Abandono (2015):** Paralisação das obras e rescisão do contrato.  
+        🔗 *Imprensa:* [Notícia sobre o cancelamento](https://www.montevideo.com.uy/Noticias/Gobierno-rescindio-contrato-con-GNLS-por-regasificadora-uc285896)
+        
+        **3. O Custo Final (2021):** Auditoria confirmou **perda líquida de $213 milhões**.  
+        🔗 *Evidência Chave:* [Baixar Auditoria Oficial (PwC)](https://www.gub.uy/presidencia/comunicacion/noticias/auditoria-encargada-ute-concluye-proyecto-gas-sayago-era-inviable-desde-su)
         """
     }
 }
@@ -261,11 +281,23 @@ try:
 except Exception as e:
     st.error(text["error_data"] + str(e))
 
-# --- 6. DOSSIER (NARRATIVA - NUEVO) ---
+# --- 6. DOSSIER (NARRATIVA CON ENLACES) ---
 st.markdown("---")
 st.subheader(text["dossier_header"])
 
-# Bloque desplegable
+# Bloque desplegable con formato enriquecido
 with st.expander(text["dossier_title"], expanded=False):
-    st.markdown(text["dossier_text"])
-    st.info("ℹ️ " + text["sources"])
+    # Usamos dos columnas para separar texto de enlaces (efecto visual limpio)
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown(text["dossier_text"])
+    
+    with col2:
+        st.info("📚 **Evidencia Original**")
+        st.markdown(f"""
+        * 🏛️ [Presidencia de la República](https://www.gub.uy/presidencia/)
+        * 📑 [Auditoría Interna de la Nación](https://www.gub.uy/auditoria-interna-nacion/)
+        * ⛽ [ANCAP Oficial](https://www.ancap.com.uy/)
+        """)
+        st.caption("Los enlaces abren en una nueva pestaña.")
