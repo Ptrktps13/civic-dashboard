@@ -4,9 +4,9 @@ import ee
 import pandas as pd
 import plotly.express as px
 import folium
-import os  # <--- NUEVA LIBRERÍA NECESARIA PARA LA CONEXIÓN
+import os
 
-# --- 1. DICCIONARIO DE IDIOMAS ---
+# --- 1. DICCIONARIO DE IDIOMAS (CON EL NUEVO DOSSIER) ---
 TRANSLATIONS = {
     "ES": {
         "page_title": "Dashboard de Integridad Cívica",
@@ -27,7 +27,17 @@ TRANSLATIONS = {
         "error_ee": "⚠️ Error de conexión con Google Earth Engine. Verifica los Secrets.",
         "error_data": "⚠️ Error cargando datos financieros: ",
         "label_left": "2013: INICIO (SOLO AGUA)",
-        "label_right": "2024: REALIDAD (ABANDONO)"
+        "label_right": "2024: REALIDAD (ABANDONO)",
+        # --- NUEVO: SECCIÓN DOSSIER ---
+        "dossier_header": "3. Dossier de Investigación (Informe Ejecutivo)",
+        "dossier_title": "📄 Resumen del Caso: Proyecto Regasificadora Gas Sayago",
+        "dossier_text": """
+        **El Proyecto:** En 2013, el Estado uruguayo anunció la construcción de una planta regasificadora offshore con una inversión estimada de **$1.125 millones de dólares**, prometiendo cambiar la matriz energética del país.
+        
+        **La Falla:** La empresa constructora (GNLS) detuvo las obras en 2015 alegando problemas técnicos. El contrato fue rescindido, dejando en el agua una estructura de pilotes inconclusa que se puede observar en la imagen satelital de 2024.
+        
+        **El Costo:** Según la auditoría forense realizada por PwC (2021), el Estado uruguayo sufrió una **pérdida neta de $213 millones de dólares**. Esto incluye gastos operativos, legales y de infraestructura inútil que se mantuvieron años después de la cancelación del proyecto.
+        """
     },
     "EN": {
         "page_title": "Civic Integrity Dashboard",
@@ -48,7 +58,17 @@ TRANSLATIONS = {
         "error_ee": "⚠️ Connection error with Google Earth Engine. Check Secrets.",
         "error_data": "⚠️ Error loading financial data: ",
         "label_left": "2013: START (WATER ONLY)",
-        "label_right": "2024: REALITY (ABANDONED)"
+        "label_right": "2024: REALITY (ABANDONED)",
+        # --- NEW: DOSSIER SECTION ---
+        "dossier_header": "3. Investigative Dossier (Executive Report)",
+        "dossier_title": "📄 Case Summary: Gas Sayago Regasification Project",
+        "dossier_text": """
+        **The Project:** In 2013, the Uruguayan government announced the construction of an offshore regasification plant with an estimated investment of **$1.125 billion USD**, promising to transform the country's energy matrix.
+        
+        **The Failure:** The construction firm (GNLS) halted works in 2015 citing technical issues. The contract was rescinded, leaving an unfinished structure of piles in the ocean, clearly visible in the 2024 satellite imagery.
+        
+        **The Cost:** According to a forensic audit by PwC (2021), the Uruguayan State suffered a **net loss of $213 million USD**. This includes operational, legal, and useless infrastructure costs incurred years after the project's cancellation.
+        """
     },
     "FR": {
         "page_title": "Tableau de Bord d'Intégrité Civique",
@@ -69,7 +89,17 @@ TRANSLATIONS = {
         "error_ee": "⚠️ Erreur de connexion avec Google Earth Engine. Vérifiez les Secrets.",
         "error_data": "⚠️ Erreur de chargement des données financières: ",
         "label_left": "2013: DÉBUT", 
-        "label_right": "2024: RÉALITÉ"
+        "label_right": "2024: RÉALITÉ",
+        # --- NOUVEAU: DOSSIER ---
+        "dossier_header": "3. Dossier d'Enquête (Rapport Exécutif)",
+        "dossier_title": "📄 Résumé du cas : Projet de Regazéification Gas Sayago",
+        "dossier_text": """
+        **Le Projet :** En 2013, l'État uruguayen a annoncé la construction d'une usine de regazéification offshore avec un investissement estimé à **1,125 milliard de dollars**, promettant de changer la matrice énergétique du pays.
+        
+        **L'Échec :** L'entreprise de construction (GNLS) a arrêté les travaux en 2015 en invoquant des problèmes techniques. Le contrat a été résilié, laissant dans l'eau une structure inachevée visible sur l'image satellite de 2024.
+        
+        **Le Coût :** Selon l'audit de PwC (2021), l'État a subi une **perte nette de 213 millions de dollars**. Cela inclut des frais opérationnels et d'infrastructures inutiles maintenus des années après l'annulation.
+        """
     },
     "PT": {
         "page_title": "Painel de Integridade Cívica",
@@ -90,7 +120,17 @@ TRANSLATIONS = {
         "error_ee": "⚠️ Erro de conexão com Google Earth Engine. Verifique os Secrets.",
         "error_data": "⚠️ Erro ao carregar dados financeiros: ",
         "label_left": "2013: INÍCIO", 
-        "label_right": "2024: REALIDADE"
+        "label_right": "2024: REALIDADE",
+        # --- NOVO: DOSSIER ---
+        "dossier_header": "3. Dossiê de Investigação (Relatório Executivo)",
+        "dossier_title": "📄 Resumo do Caso: Projeto Gás Sayago",
+        "dossier_text": """
+        **O Projeto:** Em 2013, o governo uruguaio anunciou a construção de uma planta de regaseificação offshore com um investimento estimado de **$1.125 milhões de dólares**, prometendo mudar a matriz energética do país.
+        
+        **A Falha:** A construtora (GNLS) parou as obras em 2015 alegando problemas técnicos. O contrato foi rescindido, deixando no mar uma estrutura de estacas inacabada visível na imagem de satélite de 2024.
+        
+        **O Custo:** Segundo auditoria da PwC (2021), o Estado sofreu uma **perda líquida de $213 milhões de dólares**. Isso inclui gastos operacionais e de infraestrutura inútil mantidos anos após o cancelamento.
+        """
     }
 }
 
@@ -125,16 +165,15 @@ def iniciar_earth_engine():
             os.environ["EARTHENGINE_TOKEN"] = st.secrets["EARTHENGINE_TOKEN"]
         
         # 2. Inicializar usando el proyecto por defecto o específico
-        # Si esto falla, verifica que 'gas-plant-audit-uruguay' sea el nombre correcto de tu proyecto en Google Cloud
         geemap.ee_initialize(project='gas-plant-audit-uruguay')
         return True
         
     except Exception as e:
         st.error(f"⚠️ Error Crítico de Conexión: {e}")
-        st.stop() # Detenemos la ejecución aquí para evitar el error 'Not Initialized' más abajo
+        st.stop()
         return False
 
-# Ejecutamos la conexión antes de hacer nada más
+# Ejecutamos la conexión
 iniciar_earth_engine()
 
 # --- FUNCIÓN PARA TEXTO FLOTANTE ---
@@ -221,3 +260,12 @@ try:
 
 except Exception as e:
     st.error(text["error_data"] + str(e))
+
+# --- 6. DOSSIER (NARRATIVA - NUEVO) ---
+st.markdown("---")
+st.subheader(text["dossier_header"])
+
+# Bloque desplegable
+with st.expander(text["dossier_title"], expanded=False):
+    st.markdown(text["dossier_text"])
+    st.info("ℹ️ " + text["sources"])
